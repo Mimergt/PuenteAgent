@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PuenteAgent · Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--accent:#8E1B22;--ink:#1C1A17;--muted:#5E554B;--paper:#FFF8EE;--ground:#F6E7CF;--line:#E6D2B5}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.5 "DM Sans",system-ui,sans-serif}
+  header{max-width:1120px;margin:0 auto;padding:40px 20px 8px}
+  h1{font-family:Fredoka,sans-serif;font-size:clamp(34px,6vw,52px);line-height:1;margin:0 0 10px}
+  h1 span{color:var(--accent)}
+  header p{margin:0;color:var(--muted);max-width:640px}
+  main{max-width:1120px;margin:0 auto;padding:24px 20px 80px;display:flex;flex-wrap:wrap;gap:24px}
+  .stage{flex:1 1 420px;min-width:0;align-self:flex-start;position:sticky;top:20px;background:var(--paper);border-radius:28px;min-height:600px;display:flex;align-items:center;justify-content:center;padding:200px 24px 70px;overflow:hidden}
+  .stage::before{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(transparent,rgba(142,27,34,.06))}
+  .panel{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:18px}
+  .card{background:var(--paper);border-radius:20px;padding:20px}
+  .card h2{font-family:Fredoka,sans-serif;font-size:20px;margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  button{font:inherit;font-weight:600;font-size:14px;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:12px;padding:10px 12px;min-height:44px;cursor:pointer;text-align:left}
+  button:hover{background:#FFF1DE}
+  button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;text-align:center}
+  button.primary:hover{background:#6F141A}
+  .row{display:flex;gap:8px}
+  .row input{flex:1;min-width:0;font:inherit;border:2px solid var(--line);border-radius:12px;padding:10px 12px;min-height:44px;background:#fff}
+  .row input:focus{outline:none;border-color:var(--ink)}
+  label.check{display:flex;gap:10px;align-items:center;font-weight:500;min-height:44px}
+  label.check input{width:20px;height:20px;accent-color:var(--accent)}
+  .log{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);max-height:120px;overflow:auto;margin:0;padding:0;list-style:none}
+  pre{margin:0;background:var(--ink);color:#F6E7CF;border-radius:14px;padding:16px;overflow:auto;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+  .code{max-width:1120px;margin:0 auto;padding:0 20px 80px}
+  .code h2{font-family:Fredoka,sans-serif}
+  a{color:var(--accent)}
+  @media (max-width:860px){.stage{position:relative;top:0}}
+  @media (max-width:520px){.stage{padding-top:180px;min-height:460px}#agent{--pa-size:170px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Puente<span>Agent</span></h1>
+  <p>Mascota animada para asistentes conversacionales. Web component sin dependencias, con estados de agente: esperando, escuchando, pensando, respondiendo, tomando pedido, listo y error.</p>
+</header>
+
+<main>
+  <section class="stage" aria-label="Vista previa">
+    <puente-agent id="agent" preset="delpuente" size="220" show-label></puente-agent>
+  </section>
+
+  <div class="panel">
+    <div class="card">
+      <h2>Estados</h2>
+      <div class="grid" id="states">
+        <button data-state="idle">Esperando</button>
+        <button data-state="listening">Escuchando</button>
+        <button data-state="thinking">Pensando</button>
+        <button data-state="responding">Respondiendo</button>
+        <button data-state="ordering">Tomando pedido</button>
+        <button data-state="success">Listo</button>
+        <button data-state="error">Error</button>
+        <button id="demoOrder">Pedido de ejemplo</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Hacerla hablar</h2>
+      <form class="row" id="sayForm">
+        <label for="sayInput" style="position:absolute;left:-9999px">Mensaje</label>
+        <input id="sayInput" value="¡Hola! ¿Te recomiendo la Legendaria Smash?" autocomplete="off">
+        <button type="submit" class="primary">Decir</button>
+      </form>
+      <div style="height:10px"></div>
+      <button class="primary" id="convo" style="width:100%">▶ Simular conversación completa</button>
+    </div>
+
+    <div class="card">
+      <h2>Opciones</h2>
+      <label class="check"><input type="checkbox" id="floatToggle"> Mostrar también como burbuja flotante</label>
+      <label class="check"><input type="checkbox" id="sideToggle"> Globo a la derecha</label>
+      <label class="check"><input type="checkbox" id="labelToggle" checked> Mostrar etiqueta de estado</label>
+    </div>
+
+    <div class="card">
+      <h2>Eventos</h2>
+      <ul class="log" id="log"></ul>
+    </div>
+  </div>
+</main>
+
+<section class="code">
+  <h2>Uso rápido</h2>
+<pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/Mimergt/PuenteAgent@main/src/puente-agent.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/Mimergt/PuenteAgent@main/presets/delpuente.js"&gt;&lt;/script&gt;
+
+&lt;puente-agent id="asistente" preset="delpuente" floating show-label&gt;&lt;/puente-agent&gt;
+
+&lt;script&gt;
+  const a = document.getElementById('asistente');
+  a.think();                                   // pensando
+  await a.say('¿Te armo un combo?');           // respondiendo (escribe letra por letra)
+  a.order(['1× Clásica Smash', '1× Papas']);   // tomando pedido
+  a.success('¡Tu pedido va en camino!');       // listo
+&lt;/script&gt;</code></pre>
+  <p>Documentación completa en el <a href="https://github.com/Mimergt/PuenteAgent">repositorio</a>.</p>
+</section>
+
+<script src="../src/puente-agent.js"></script>
+<script src="../presets/delpuente.js"></script>
+<script>
+  const agent = document.getElementById('agent');
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+  let floater = null;
+  let runId = 0;
+
+  // Botones de estado
+  const stateButtons = [...document.querySelectorAll('#states [data-state]')];
+  const syncButtons = () => stateButtons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.state === agent.state)));
+  stateButtons.forEach(b => b.addEventListener('click', () => {
+    runId++;
+    if (b.dataset.state === 'ordering') agent.order([]);
+    else agent.setState(b.dataset.state);
+  }));
+
+  document.getElementById('demoOrder').addEventListener('click', async () => {
+    const id = ++runId;
+    agent.order([]);
+    for (const item of ['1× Legendaria Smash', '1× Papas fritas', '1× Frezka Jamaica']) {
+      await wait(1100); if (id !== runId) return;
+      agent.addItem(item);
+    }
+  });
+
+  document.getElementById('sayForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    runId++;
+    agent.say(document.getElementById('sayInput').value);
+  });
+
+  // Conversación de ejemplo
+  document.getElementById('convo').addEventListener('click', async () => {
+    const id = ++runId;
+    const go = (fn, ms) => wait(ms).then(() => { if (id === runId) return fn(); throw 0; });
+    try {
+      agent.listen();
+      await go(() => agent.think(), 1800);
+      await go(() => agent.say('¡Hola! Para tu antojo te recomiendo la Legendaria Smash con papas y una Frezka.'), 2600);
+      await go(() => agent.order([]), 900);
+      for (const item of ['1× Legendaria Smash', '1× Papas fritas', '1× Frezka Jamaica']) {
+        await go(() => agent.addItem(item), 1000);
+      }
+      await go(() => agent.think(), 1400);
+      await go(() => agent.success('¡Listo! Tu pedido va en camino.'), 1600);
+      await go(() => agent.idle(), 3200);
+    } catch (_) { /* interrumpido */ }
+  });
+
+  // Opciones
+  document.getElementById('floatToggle').addEventListener('change', (e) => {
+    if (e.target.checked) {
+      floater = PuenteAgent.create({ preset: 'delpuente', size: 84, floating: true });
+      floater.addEventListener('agent-click', async () => {
+        floater.listen();
+        await wait(1200);
+        floater.say('¿En qué te ayudo hoy?');
+      });
+    } else if (floater) { floater.remove(); floater = null; }
+  });
+  document.getElementById('sideToggle').addEventListener('change', (e) => {
+    agent.setAttribute('bubble-side', e.target.checked ? 'right' : 'left');
+  });
+  document.getElementById('labelToggle').addEventListener('change', (e) => {
+    agent.toggleAttribute('show-label', e.target.checked);
+  });
+
+  // Registro de eventos
+  const log = document.getElementById('log');
+  const addLog = (t) => { const li = document.createElement('li'); li.textContent = t; log.prepend(li); while (log.children.length > 30) log.lastChild.remove(); };
+  agent.addEventListener('statechange', (e) => { addLog(`statechange → ${e.detail.state}`); syncButtons(); });
+  agent.addEventListener('saydone', () => addLog('saydone'));
+  agent.addEventListener('agent-click', () => addLog('agent-click'));
+  syncButtons();
+</script>
+</body>
+</html>

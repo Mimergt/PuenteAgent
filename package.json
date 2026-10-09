@@ -1,0 +1,26 @@
+{
+  "name": "puente-agent",
+  "version": "0.1.0",
+  "description": "Mascota animada para asistentes conversacionales: web component sin dependencias con estados de agente (esperando, escuchando, pensando, respondiendo, tomando pedido, listo, error).",
+  "main": "src/puente-agent.js",
+  "browser": "src/puente-agent.js",
+  "files": [
+    "src",
+    "presets",
+    "assets"
+  ],
+  "keywords": [
+    "web-component",
+    "mascot",
+    "chatbot",
+    "agent",
+    "assistant",
+    "animation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mimergt/PuenteAgent.git"
+  },
+  "homepage": "https://mimergt.github.io/PuenteAgent/examples/demo.html",
+  "license": "MIT"
+}
